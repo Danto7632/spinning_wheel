@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>랜덤 돌림판</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 30px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    body.dark {
+      background: #020617;
+      color: #e5e7eb;
+    }
+
+    .wrap {
+      position: relative;
+      width: 100%;
+      max-width: 1225px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 30px 35px 32px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    body.dark .wrap {
+      background: #0f172a;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.75);
+    }
+
+    h1 {
+      width: 100%;
+      margin: 0 0 6px;
+      text-align: center;
+      font-size: 30px;
+    }
+
+    .sub {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 16px;
+      color: #666;
+    }
+
+    body.dark .sub {
+      color: #9ca3af;
+    }
+
+    .theme-btn {
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      padding: 8px 15px;
+      font-size: 15px;
+      border-radius: 999px;
+      border: 1px solid #ddd;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    body.dark .theme-btn {
+      background: #020617;
+      border-color: #374151;
+      color: #e5e7eb;
+    }
+
+    .main {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    .left {
+      flex: 0 0 450px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .wheel-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 32px solid #ff7043;
+      z-index: 5;
+    }
+
+    #wheel {
+      width: 425px;
+      height: 425px;
+      border-radius: 50%;
+      background: #fafafa;
+      box-shadow: 0 0 0 4px #e0e0e0;
+    }
+
+    body.dark #wheel {
+      background: #020617;
+      box-shadow: 0 0 0 4px #1f2937;
+    }
+
+    .right {
+      flex: 1 1 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 17px;
+    }
+
+    .item-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    .item-table th,
+    .item-table td {
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    .item-table thead {
+      background: #e3f2fd;
+    }
+
+    body.dark .item-table thead {
+      background: #1d2a4a;
+    }
+
+    .item-table tbody tr:nth-child(odd) {
+      background: #fafafa;
+    }
+
+    .item-table tbody tr:nth-child(even) {
+      background: #ffffff;
+    }
+
+    body.dark .item-table tbody tr:nth-child(odd),
+    body.dark .item-table tbody tr:nth-child(even) {
+      background: #020617;
+    }
+
+    .item-table tfoot td {
+      border-top: 1px solid #e0e0e0;
+    }
+
+    body.dark .item-table tfoot td {
+      border-top: 1px solid #374151;
+    }
+
+    .item-table input[type="text"],
+    .item-table input[type="number"] {
+      width: 100%;
+      padding: 5px 8px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+    }
+
+    body.dark .item-table input[type="text"],
+    body.dark .item-table input[type="number"] {
+      background: #020617;
+      border-color: #374151;
+      color: #e5e7eb;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-size: 15px;
+      cursor: pointer;
+      background: #eeeeee;
+    }
+
+    .btn-main {
+      background: #42a5f5;
+      color: #fff;
+      font-size: 18px;
+      padding-inline: 26px;
+    }
+
+    .btn-main:hover:not(:disabled) {
+      background: #2196f3;
+    }
+
+    .btn-del {
+      background: #ffebee;
+      border: 1px solid #ffcdd2;
+      color: #c62828;
+      padding: 4px 10px;
+      font-size: 14px;
+    }
+
+    body.dark .btn-del {
+      background: #7f1d1d;
+      border-color: #b91c1c;
+      color: #fee2e2;
+    }
+
+    .btn-add {
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      color: #1b5e20;
+      padding: 5px 12px;
+      font-size: 14px;
+    }
+
+    body.dark .btn-add {
+      background: #064e3b;
+      border-color: #047857;
+      color: #bbf7d0;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .info-row {
+      font-size: 14px;
+      color: #777;
+      margin-top: 5px;
+    }
+
+    body.dark .info-row {
+      color: #9ca3af;
+    }
+
+    #result {
+      margin-top: 12px;
+      min-height: 30px;
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(7px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    #result.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 콘페티 */
+    #confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 999;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 8px;
+      height: 13px;
+      border-radius: 2px;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+
+    @media (max-width: 860px) {
+      body { padding: 16px; }
+      .wrap { padding: 22px; max-width: 100%; }
+      .left { flex-basis: 100%; }
+      .right { flex-basis: 100%; }
+      #wheel { width: 360px; height: 360px; }
+      .pointer { top: -20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <button id="themeToggle" class="theme-btn">🌙 다크 모드</button>
+
+    <h1>랜덤 돌림판</h1>
+    <div class="sub">이름과 크기를 조절해서 확률을 설정한 뒤, 돌려보세요!</div>
+
+    <div class="main">
+      <div class="left">
+        <div class="wheel-wrap">
+          <div class="pointer"></div>
+          <canvas id="wheel"></canvas>
+        </div>
+      </div>
+
+      <div class="right">
+        <table class="item-table">
+          <thead>
+            <tr>
+              <th style="width:45%;">이름</th>
+              <th style="width:20%;">크기</th>
+              <th style="width:20%;">확률</th>
+              <th style="width:15%; text-align:center;">삭제</th>
+            </tr>
+          </thead>
+          <tbody id="itemBody"></tbody>
+          <tfoot>
+            <tr>
+              <td><input type="text" id="newName" placeholder="추가할 내용" /></td>
+              <td><input type="number" id="newSize" min="1" value="1" /></td>
+              <td>-</td>
+              <td style="text-align:center;">
+                <button id="addRowBtn" class="btn btn-add">추가</button>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="info-row">
+          총 크기: <span id="totalSize">0</span> |
+          항목 수: <span id="itemCount">0</span>개
+        </div>
+
+        <button id="spinBtn" class="btn btn-main">🎲 돌리기</button>
+        <div id="result"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="confetti"></div>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById("wheel");
+      const ctx = canvas.getContext("2d");
+
+      // 캔버스 고해상도 설정 (레티나 대응)
+      const logicalSize = 425; // CSS 크기
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = logicalSize * dpr;
+      canvas.height = logicalSize * dpr;
+      canvas.style.width = logicalSize + "px";
+      canvas.style.height = logicalSize + "px";
+      ctx.scale(dpr, dpr);
+
+      const itemBody = document.getElementById("itemBody");
+      const totalSizeSpan = document.getElementById("totalSize");
+      const itemCountSpan = document.getElementById("itemCount");
+      const newNameInput = document.getElementById("newName");
+      const newSizeInput = document.getElementById("newSize");
+      const addRowBtn = document.getElementById("addRowBtn");
+      const spinBtn = document.getElementById("spinBtn");
+      const resultDiv = document.getElementById("result");
+      const confettiBox = document.getElementById("confetti");
+      const themeToggle = document.getElementById("themeToggle");
+
+      let items = [
+        { name: "항목 1", size: 1 },
+        { name: "항목 2", size: 1 },
+        { name: "항목 3", size: 1 },
+        { name: "항목 4", size: 1 }
+      ];
+
+      let rotation = 0;
+      let spinning = false;
+      let isDark = false;
+
+      function applyTheme() {
+        document.body.classList.toggle("dark", isDark);
+        themeToggle.textContent = isDark ? "☀️ 라이트 모드" : "🌙 다크 모드";
+        drawWheel();
+      }
+
+      themeToggle.addEventListener("click", () => {
+        isDark = !isDark;
+        applyTheme();
+      });
+      applyTheme();
+
+      // --- 렌더링 ---
+
+      function drawWheel(highlightIndex) {
+        const cssWidth = canvas.width / dpr;
+        const cssHeight = canvas.height / dpr;
+        const cx = cssWidth / 2;
+        const cy = cssHeight / 2;
+        const r = Math.min(cssWidth, cssHeight) / 2 - 12;
+
+        ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+        if (!items.length) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.fillStyle = "#777";
+          ctx.font = "19px system-ui";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("항목을 추가해 주세요", 0, 0);
+          ctx.restore();
+          return;
+        }
+
+        const totalSize = items.reduce(
+          (sum, item) => sum + Math.max(0, Number(item.size) || 0),
+          0
+        );
+        if (totalSize <= 0) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.fillStyle = "#777";
+          ctx.font = "19px system-ui";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("크기는 최소 1 이상이어야 합니다", 0, 0);
+          ctx.restore();
+          return;
+        }
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rotation);
+
+        let currentAngle = 0;
+        for (let i = 0; i < items.length; i++) {
+          const size = Math.max(0, Number(items[i].size) || 0);
+          const angleSpan = (size / totalSize) * Math.PI * 2;
+          const start = currentAngle;
+          const end = currentAngle + angleSpan;
+
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.arc(0, 0, r, start, end);
+          ctx.closePath();
+
+          if (highlightIndex === i) {
+            ctx.fillStyle = "#ffe082";
+          } else {
+            const hue = (i * 360) / items.length;
+            ctx.fillStyle = "hsl(" + hue + ", 80%, 70%)";
+          }
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          // 텍스트 (그림자 제거, 선명하게)
+          ctx.save();
+          ctx.rotate(start + angleSpan / 2);
+          ctx.translate(r * 0.65, 0);
+          ctx.rotate(Math.PI / 2);
+
+          ctx.font = "bold 20px system-ui";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = isDark ? "#f9fafb" : "#111827";
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
+
+          let text = items[i].name || ("항목 " + (i + 1));
+          const maxWidth = r * 0.9;
+          while (ctx.measureText(text).width > maxWidth && text.length > 0) {
+            text = text.slice(0, -1);
+          }
+          if (text !== items[i].name) text += "…";
+
+          ctx.fillText(text, 0, 0);
+          ctx.restore();
+
+          currentAngle = end;
+        }
+
+        ctx.restore();
+      }
+
+      function renderTable() {
+        itemBody.innerHTML = "";
+
+        const totalSize = items.reduce(
+          (sum, item) => sum + Math.max(0, Number(item.size) || 0),
+          0
+        );
+
+        items.forEach((item, index) => {
+          const tr = document.createElement("tr");
+
+          // 이름
+          const nameTd = document.createElement("td");
+          const nameInput = document.createElement("input");
+          nameInput.type = "text";
+          nameInput.value = item.name;
+          nameInput.addEventListener("input", (e) => {
+            items[index].name = e.target.value;
+            drawWheel();
+          });
+          nameTd.appendChild(nameInput);
+
+          // 크기 (최종 입력 후 반영)
+          const sizeTd = document.createElement("td");
+          const sizeInput = document.createElement("input");
+          sizeInput.type = "number";
+          sizeInput.min = "1";
+          sizeInput.value = item.size;
+
+          const commitSize = () => {
+            let v = parseInt(sizeInput.value, 10);
+            if (isNaN(v) || v <= 0) {
+              v = items[index].size || 1;
+              sizeInput.value = v;
+            }
+            items[index].size = v;
+            renderAll();
+          };
+
+          sizeInput.addEventListener("blur", commitSize);
+          sizeInput.addEventListener("change", commitSize);
+          sizeInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              sizeInput.blur();
+            }
+          });
+
+          sizeTd.appendChild(sizeInput);
+
+          // 확률
+          const probTd = document.createElement("td");
+          if (totalSize > 0) {
+            const p = (item.size / totalSize) * 100;
+            probTd.textContent = p.toFixed(1) + "%";
+          } else {
+            probTd.textContent = "-";
+          }
+
+          // 삭제
+          const delTd = document.createElement("td");
+          delTd.style.textAlign = "center";
+          const delBtn = document.createElement("button");
+          delBtn.className = "btn btn-del";
+          delBtn.textContent = "삭제";
+          delBtn.addEventListener("click", () => {
+            items.splice(index, 1);
+            renderAll();
+          });
+          delTd.appendChild(delBtn);
+
+          tr.appendChild(nameTd);
+          tr.appendChild(sizeTd);
+          tr.appendChild(probTd);
+          tr.appendChild(delTd);
+          itemBody.appendChild(tr);
+        });
+
+        totalSizeSpan.textContent = totalSize;
+        itemCountSpan.textContent = items.length;
+      }
+
+      function renderAll() {
+        renderTable();
+        drawWheel();
+      }
+
+      // --- 추가 / 삭제 ---
+
+      function addRow() {
+        let name = newNameInput.value.trim();
+        let size = parseInt(newSizeInput.value, 10);
+        if (!name) name = "새 항목";
+        if (isNaN(size) || size <= 0) size = 1;
+
+        items.push({ name, size });
+        newNameInput.value = "";
+        newSizeInput.value = "1";
+        renderAll();
+      }
+
+      addRowBtn.addEventListener("click", addRow);
+      newNameInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addRow();
+        }
+      });
+      newSizeInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addRow();
+        }
+      });
+
+      // --- 콘페티 ---
+
+      function showConfetti() {
+        confettiBox.innerHTML = "";
+        const count = 80;
+        for (let i = 0; i < count; i++) {
+          const piece = document.createElement("div");
+          piece.className = "confetti-piece";
+          piece.style.left = Math.random() * 100 + "%";
+          piece.style.backgroundColor =
+            "hsl(" + Math.random() * 360 + ", 80%, 60%)";
+          piece.style.animationDuration = 1.5 + Math.random() * 1.5 + "s";
+          piece.style.animationDelay = Math.random() * 0.5 + "s";
+          confettiBox.appendChild(piece);
+        }
+        setTimeout(() => {
+          confettiBox.innerHTML = "";
+        }, 3000);
+      }
+
+      // --- 당첨 계산 ---
+
+      function finishSpin() {
+        if (!items.length) return;
+
+        const totalSize = items.reduce(
+          (sum, item) => sum + Math.max(0, Number(item.size) || 0),
+          0
+        );
+        if (totalSize <= 0) return;
+
+        const pointerAngle = -Math.PI / 2;
+        let localAngle = pointerAngle - rotation;
+        localAngle =
+          ((localAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+
+        let currentAngle = 0;
+        let winnerIndex = items.length - 1;
+
+        for (let i = 0; i < items.length; i++) {
+          const size = Math.max(0, Number(items[i].size) || 0);
+          const span = (size / totalSize) * Math.PI * 2;
+          const start = currentAngle;
+          const end = currentAngle + span;
+          if (localAngle >= start && localAngle < end) {
+            winnerIndex = i;
+            break;
+          }
+          currentAngle = end;
+        }
+
+        drawWheel(winnerIndex);
+
+        const winner = items[winnerIndex].name || ("항목 " + (winnerIndex + 1));
+        resultDiv.textContent = "당첨: " + winner;
+        resultDiv.classList.add("show");
+        showConfetti();
+      }
+
+      // --- 회전 ---
+
+      function spin() {
+        if (spinning) return;
+        if (items.length < 2) {
+          alert("최소 2개 이상의 항목이 필요합니다.");
+          return;
+        }
+
+        spinning = true;
+        spinBtn.disabled = true;
+        resultDiv.classList.remove("show");
+
+        const duration = 3500;
+        const startRotation = rotation;
+        const extra = 4 + Math.random() * 3;
+        const targetRotation =
+          startRotation + extra * Math.PI * 2 + Math.random() * (Math.PI * 2);
+        const startTime = performance.now();
+
+        function step(now) {
+          const t = (now - startTime) / duration;
+          if (t >= 1) {
+            rotation = targetRotation;
+            drawWheel();
+            spinning = false;
+            spinBtn.disabled = false;
+            finishSpin();
+            return;
+          }
+          const eased = 1 - Math.pow(1 - t, 3);
+          rotation = startRotation + (targetRotation - startRotation) * eased;
+          drawWheel();
+          requestAnimationFrame(step);
+        }
+
+        requestAnimationFrame(step);
+      }
+
+      spinBtn.addEventListener("click", spin);
+
+      // 초기 렌더
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
